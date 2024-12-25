@@ -16,11 +16,12 @@ type Environment struct {
 	Server struct {
 		Port   int    `env:"PORT,default=587"`
 		Domain string `env:"DOMAIN,default=localhost"`
+		Host   string `env:"HOST,default=localhost"`
 
 		WriteTimeout      time.Duration `env:"WRITE_TIMEOUT,default=10s"`
 		ReadTimeout       time.Duration `env:"READ_TIMEOUT,default=10s"`
 		MaxMessageBytes   int           `env:"MAX_MESSAGE_BYTES,default=1048576"` //1024 * 1024
-		MaxRecipients     int           `env:"MAX_RECIPIENTS,default=10"`
+		MaxRecipients     int           `env:"MAX_RECIPIENTS,default=1"`
 		AllowInsecureAuth bool          `env:"ALLOW_INSECURE_AUTH,default=true"`
 
 		LogLevel int `eng:"LOG_LEVEL,default=5"` //logrus log level

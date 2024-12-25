@@ -88,7 +88,9 @@ func (s *Session) Data(r io.Reader) error {
 	return nil
 }
 
-func (s *Session) Reset() {}
+func (s *Session) Reset() {
+	s.Email = &EmailData{}
+}
 
 func (s *Session) Logout() error {
 	//Logger.Println("logout")
@@ -98,7 +100,7 @@ func (s *Session) Logout() error {
 
 func NewServer(backend *Backend) *smtp.Server {
 	server := smtp.NewServer(backend)
-	addr := fmt.Sprintf("localhost:%d", Config.Server.Port)
+	addr := fmt.Sprintf("%s:%d", Config.Server.Host, Config.Server.Port)
 	server.Addr = addr
 	server.Domain = Config.Server.Domain
 	server.WriteTimeout = Config.Server.WriteTimeout
