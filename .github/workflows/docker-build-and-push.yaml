@@ -30,18 +30,24 @@ jobs:
         run: |
           echo "COMMIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
+      - name: set lower case owner name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
       - name: Build the Docker image
         run: |
-          IMAGE_NAME="ghcr.io/${{ github.repository_owner | toLowerCase }}/$(basename ${GITHUB_REPOSITORY}):${{ env.COMMIT_HASH }}"
-          docker build -t $IMAGE_NAME .
+          IMAGE_NAME="ghcr.io/${{ env.OWNER_LC }}/$(basename ${GITHUB_REPOSITORY}):${{ env.COMMIT_HASH }}"
+          docker build --target build -t $IMAGE_NAME .
           
       - name: Push the Docker image
         run: |
-          IMAGE_NAME="ghcr.io/${{ github.repository_owner | toLowerCase }}/$(basename ${GITHUB_REPOSITORY}):${{ env.COMMIT_HASH }}"
+          IMAGE_NAME="ghcr.io/${{ env.OWNER_LC }}/$(basename ${GITHUB_REPOSITORY}):${{ env.COMMIT_HASH }}"
           docker push $IMAGE_NAME
 
       - name: Tag the image with 'latest'
         run: |
-          IMAGE_NAME="ghcr.io/${{ github.repository_owner | toLowerCase }}/$(basename ${GITHUB_REPOSITORY}):latest"
-          docker tag ghcr.io/${{ github.repository_owner | toLowerCase }}/$(basename ${GITHUB_REPOSITORY}):${{ env.COMMIT_HASH }} $IMAGE_NAME
+          IMAGE_NAME="ghcr.io/${{ env.OWNER_LC }}/$(basename ${GITHUB_REPOSITORY}):latest"
+          docker tag ghcr.io/${{ env.OWNER_LC }}/$(basename ${GITHUB_REPOSITORY}):${{ env.COMMIT_HASH }} $IMAGE_NAME
           docker push $IMAGE_NAME
