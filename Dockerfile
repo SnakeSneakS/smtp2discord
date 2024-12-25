@@ -11,7 +11,7 @@ FROM golang:1.23 AS build
 WORKDIR /go/src/app
 COPY . .
 RUN go mod download
-RUN go build -o /go/bin/app main.go
+RUN go build -o /go/bin/app
 
 FROM gcr.io/distroless/static-debian12 AS production
 COPY --from=builder /go/bin/app /app
