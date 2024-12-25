@@ -14,5 +14,5 @@ RUN go mod download
 RUN go build -o /go/bin/app
 
 FROM gcr.io/distroless/static-debian12 AS production
-COPY --from=build /go/bin/app /app
-CMD [ "/app" ]
+COPY --from=build /go/bin/app /go/bin/app
+CMD [ "/go/bin/app" ]
