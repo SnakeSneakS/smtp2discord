@@ -1,0 +1,14 @@
+{
+  "name": "SMTP to Discord Development (golang)",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "development"  
+  },
+  "extensions": [
+    "golang.go",       
+  ],
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/app,type=bind" 
+  ],
+}
