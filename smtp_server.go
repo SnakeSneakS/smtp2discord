@@ -108,6 +108,7 @@ func (s *Session) Logout() error {
 
 func NewServer(backend *Backend) *smtp.Server {
 	server := smtp.NewServer(backend)
+	server.MaxLineLength = Cfg.Server.EmailMsgSizeMax
 	server.Addr = Cfg.Server.Addr
 	server.Domain = Cfg.Server.Domain
 	server.WriteTimeout = Cfg.Server.WriteTimeout

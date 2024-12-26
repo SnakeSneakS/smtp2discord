@@ -6,8 +6,7 @@ func TruncateAndSplit(input string, x int) []string {
 	if x <= 3 {
 		panic("x must be greater than 3 to accommodate '...'")
 	}
-
-	var result []string
+	result := make([]string, 0)
 	for len(input) > x {
 		if len(result) == 0 {
 			// Add the first part without "..."
@@ -20,7 +19,6 @@ func TruncateAndSplit(input string, x int) []string {
 			input = input[prefixLength:]
 		}
 	}
-
 	// Add the remaining part
 	if len(input) > 0 {
 		if len(result) > 0 {

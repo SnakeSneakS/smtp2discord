@@ -33,11 +33,8 @@ func NewSmtp2DiscordServer() *smtp.Server {
 }
 
 func sendEmailDataToDiscord(e EmailData) error {
-	text, err := extractTextFromHTML(e.Text)
-	if err != nil {
-		Cfg.Logger.Debugf("failed to parse email text as html: %s", e.Text)
-		text = e.Text
-	}
+	text := extractTextFromHTML(e.Text)
+
 	templateData := map[string]interface{}{
 		"From": e.From,
 		"To":   e.To,
@@ -47,6 +44,7 @@ func sendEmailDataToDiscord(e EmailData) error {
 	if err != nil {
 		return err
 	}
+
 	messages := TruncateAndSplit(message, Cfg.Discord.DiscordMsgSizeMax)
 	for _, messageSplit := range messages {
 		if err := SendToDiscord(messageSplit); err != nil {
@@ -56,25 +54,31 @@ func sendEmailDataToDiscord(e EmailData) error {
 	return nil
 }
 
-func extractTextFromHTML(htmlStr string) (string, error) {
-	doc, err := html.Parse(strings.NewReader(htmlStr))
+// extractTextFromHTML extracts text from an HTML input or returns the raw text if the input is not valid HTML.
+func extractTextFromHTML(input string) string {
+	// Try parsing the input as HTML
+	doc, err := html.Parse(strings.NewReader(input))
 	if err != nil {
-		return "", fmt.Errorf("failed to parse HTML: %w", err)
+		// If parsing fails, assume it's plain text
+		return input
 	}
-	var result strings.Builder
+
+	// Extract text from the HTML
+	var buf bytes.Buffer
 	var extractText func(*html.Node)
-	extractText = func(node *html.Node) {
-		if node.Type == html.TextNode {
-			result.WriteString(node.Data)
-			result.WriteString("\n")
-		} else if node.Type == html.ElementNode {
-			for child := node.FirstChild; child != nil; child = child.NextSibling {
-				extractText(child)
-			}
+	extractText = func(n *html.Node) {
+		if n.Type == html.TextNode {
+			buf.WriteString(n.Data)
+		}
+		if n.FirstChild != nil {
+			extractText(n.FirstChild)
+		}
+		if n.NextSibling != nil {
+			extractText(n.NextSibling)
 		}
 	}
 	extractText(doc)
-	return strings.TrimSpace(result.String()), nil
+	return strings.TrimSpace(buf.String())
 }
 
 func RenderDiscordMessageTemplate(data interface{}) (string, error) {
