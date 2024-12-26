@@ -106,6 +106,15 @@ func (s *Session) Logout() error {
 	return nil
 }
 
+type ServerErrorLogger struct{}
+
+func (l ServerErrorLogger) Printf(format string, v ...interface{}) {
+	Cfg.Logger.Errorf(format, v...)
+}
+func (l ServerErrorLogger) Println(v ...interface{}) {
+	Cfg.Logger.Errorln(v...)
+}
+
 func NewServer(backend *Backend) *smtp.Server {
 	server := smtp.NewServer(backend)
 	server.MaxLineLength = Cfg.Server.EmailMsgSizeMax
@@ -115,6 +124,7 @@ func NewServer(backend *Backend) *smtp.Server {
 	server.ReadTimeout = Cfg.Server.ReadTimeout
 	server.MaxMessageBytes = int64(Cfg.Server.MaxMessageBytes)
 	server.AllowInsecureAuth = Cfg.Server.AllowInsecureAuth
+	server.ErrorLog = ServerErrorLogger{}
 	//Logger.Println("Starting server at", server.Addr)
 	//if err := server.ListenAndServe(); err != nil {
 	//	Logger.Fatal(err)
