@@ -57,6 +57,6 @@ func init() {
 	//log.Println(Cfg.Logger.Level)
 	//log.Println(Cfg.Server.LogLevel)
 	Cfg.Logger.Info("successfully initialized configuration")
-	Cfg.Logger.Debugf("config: %v", Cfg)
+	Cfg.Logger.Debugf("config: %v", *Cfg.Environment)
 	//Logger.Printf("successfully initialized configuration: %+v", Config)
 }
