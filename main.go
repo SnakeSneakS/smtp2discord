@@ -33,7 +33,8 @@ func NewSmtp2DiscordServer() *smtp.Server {
 }
 
 func sendEmailDataToDiscord(e EmailData) error {
-	text := extractTextFromHTML(e.Text)
+	text := e.Text
+	//extractTextFromEmailText(e.Text)
 
 	templateData := map[string]interface{}{
 		"From": e.From,
@@ -54,8 +55,9 @@ func sendEmailDataToDiscord(e EmailData) error {
 	return nil
 }
 
-// extractTextFromHTML extracts text from an HTML input or returns the raw text if the input is not valid HTML.
-func extractTextFromHTML(input string) string {
+// ExtractTextFromEmailText extracts text from an HTML input or returns the raw text if the input is not valid HTML.
+// TODO: implement this well
+func ExtractTextFromEmailText(input string) string {
 	// Try parsing the input as HTML
 	doc, err := html.Parse(strings.NewReader(input))
 	if err != nil {
