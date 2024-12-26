@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/Netflix/go-env"
@@ -25,53 +24,38 @@ type Environment struct {
 		MaxRecipients     int           `env:"MAX_RECIPIENTS,default=1"`
 		AllowInsecureAuth bool          `env:"ALLOW_INSECURE_AUTH,default=true"`
 
-		LogLevel int `eng:"LOG_LEVEL,default=5"` //logrus log level
+		LogLevel int `env:"LOG_LEVEL,default=5"` //logrus log level
 	}
 
 	Discord struct {
 		WebhookURL      string `env:"DISCORD_WEBHOOK_URL"`
 		MessageTemplate string `env:"DISCORD_MESSAGE_TEMPLATE"`
 	}
-
-	Logger *logrus.Logger
 }
 
-/*
 type Config struct {
 	*Environment
 	Logger *logrus.Logger
 }
-*/
 
-func InitLogger() *logrus.Logger {
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.SetLevel(logrus.Level(Cfg.Server.LogLevel))
-	logger.Debugf("log level: %d", logrus.GetLevel())
-	logger.Info("logger initialized")
-	//log.Println(logger)
-	return logger
+var Cfg Config = Config{
+	Environment: &Environment{},
+	Logger:      logrus.New(),
 }
 
-var Cfg Environment = Environment{}
-
 func init() {
-	logger := logrus.New()
+
 	err := godotenv.Load()
 	if err == nil {
-		logger.Info("successfully loaded .env file")
+		Cfg.Logger.Info("successfully loaded .env file")
 	}
-	if _, err := env.UnmarshalFromEnviron(&Cfg); err != nil {
-		logger.Fatal(err)
+	if _, err := env.UnmarshalFromEnviron(Cfg.Environment); err != nil {
+		Cfg.Logger.Fatal(err)
 	}
-	log.Print(Cfg)
-	//Cfg.Logger.SetFormatter(&logrus.JSONFormatter{})
-	Cfg.Logger = logger
+	Cfg.Logger.SetFormatter(&logrus.JSONFormatter{})
 	Cfg.Logger.SetLevel(logrus.Level(Cfg.Server.LogLevel))
-	log.Println(Cfg.Logger.Level)
-	log.Println(Cfg.Server.LogLevel)
-	Cfg.Logger.Debugf("log level: %d", Cfg.Logger.GetLevel())
-	Cfg.Logger.Info("logger initialized")
+	//log.Println(Cfg.Logger.Level)
+	//log.Println(Cfg.Server.LogLevel)
 	Cfg.Logger.Info("successfully initialized configuration")
 	Cfg.Logger.Debugf("config: %v", Cfg)
 	//Logger.Printf("successfully initialized configuration: %+v", Config)
