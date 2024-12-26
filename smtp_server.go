@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/emersion/go-sasl"
@@ -100,8 +99,7 @@ func (s *Session) Logout() error {
 
 func NewServer(backend *Backend) *smtp.Server {
 	server := smtp.NewServer(backend)
-	addr := fmt.Sprintf("%s:%d", Config.Server.Host, Config.Server.Port)
-	server.Addr = addr
+	server.Addr = Config.Server.Addr
 	server.Domain = Config.Server.Domain
 	server.WriteTimeout = Config.Server.WriteTimeout
 	server.ReadTimeout = Config.Server.ReadTimeout

@@ -14,9 +14,8 @@ type Environment struct {
 	}
 
 	Server struct {
-		Port   int    `env:"PORT,default=587"`
+		Addr   string `env:"ADDR,default=:587"`
 		Domain string `env:"DOMAIN,default=localhost"`
-		Host   string `env:"HOST,default=localhost"`
 
 		WriteTimeout      time.Duration `env:"WRITE_TIMEOUT,default=10s"`
 		ReadTimeout       time.Duration `env:"READ_TIMEOUT,default=10s"`
