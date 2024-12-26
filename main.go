@@ -13,16 +13,16 @@ import (
 func main() {
 	// サーバーの起動
 	server := NewSmtp2DiscordServer()
-	Logger.Debugf("listen and serve on %s", Config.Server.Addr)
+	Cfg.Logger.Debugf("listen and serve on %s", Cfg.Server.Addr)
 	if err := server.ListenAndServe(); err != nil {
-		Logger.Errorf("Failed to start server: %v", err)
+		Cfg.Logger.Errorf("Failed to start server: %v", err)
 	}
 }
 
 func NewSmtp2DiscordServer() *smtp.Server {
 	backend := NewBackend()
 	backend.SendEmailFuncs = append(backend.SendEmailFuncs, func(e EmailData) error {
-		Logger.Debugf("will send email data from(%s) to(%v)", e.From, e.To)
+		Cfg.Logger.Debugf("will send email data from(%s) to(%v)", e.From, e.To)
 		return nil
 	})
 	backend.SendEmailFuncs = append(backend.SendEmailFuncs, sendEmailDataToDiscord)
@@ -47,7 +47,7 @@ func sendEmailDataToDiscord(e EmailData) error {
 }
 
 func RenderDiscordMessageTemplate(data interface{}) (string, error) {
-	templateContent := Config.Discord.MessageTemplate
+	templateContent := Cfg.Discord.MessageTemplate
 	tmpl, err := template.New("discord message").Parse(templateContent)
 	if err != nil {
 		return "", fmt.Errorf("error creating template: %v", err)
@@ -67,7 +67,7 @@ func SendToDiscord(message string) error {
 	if err != nil {
 		return fmt.Errorf("error marshalling payload: %v", err)
 	}
-	resp, err := http.Post(Config.Discord.WebhookURL, "application/json", bytes.NewBuffer(payloadBytes))
+	resp, err := http.Post(Cfg.Discord.WebhookURL, "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return fmt.Errorf("error sending request to Discord: %v", err)
 	}

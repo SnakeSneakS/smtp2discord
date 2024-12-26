@@ -53,7 +53,7 @@ func (s *Session) AuthMechanisms() []string {
 
 func (s *Session) Auth(mech string) (sasl.Server, error) {
 	return sasl.NewPlainServer(func(identity, username, password string) error {
-		if username != Config.Auth.Username || password != Config.Auth.Password {
+		if username != Cfg.Auth.Username || password != Cfg.Auth.Password {
 			return errors.New("invalid username or password")
 		}
 		return nil
@@ -82,7 +82,7 @@ func (s *Session) Data(r io.Reader) error {
 		s.Email.Text = string(b)
 		for _, sendEmailFunc := range s.SendEmailFuncs {
 			if _err := sendEmailFunc(*s.Email); _err != nil {
-				Logger.Errorf("failed to send email: %v", err)
+				Cfg.Logger.Errorf("failed to send email: %v", err)
 				err = fmt.Errorf("%w, %w", err, _err)
 			}
 		}
@@ -105,12 +105,12 @@ func (s *Session) Logout() error {
 
 func NewServer(backend *Backend) *smtp.Server {
 	server := smtp.NewServer(backend)
-	server.Addr = Config.Server.Addr
-	server.Domain = Config.Server.Domain
-	server.WriteTimeout = Config.Server.WriteTimeout
-	server.ReadTimeout = Config.Server.ReadTimeout
-	server.MaxMessageBytes = int64(Config.Server.MaxMessageBytes)
-	server.AllowInsecureAuth = Config.Server.AllowInsecureAuth
+	server.Addr = Cfg.Server.Addr
+	server.Domain = Cfg.Server.Domain
+	server.WriteTimeout = Cfg.Server.WriteTimeout
+	server.ReadTimeout = Cfg.Server.ReadTimeout
+	server.MaxMessageBytes = int64(Cfg.Server.MaxMessageBytes)
+	server.AllowInsecureAuth = Cfg.Server.AllowInsecureAuth
 	//Logger.Println("Starting server at", server.Addr)
 	//if err := server.ListenAndServe(); err != nil {
 	//	Logger.Fatal(err)

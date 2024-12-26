@@ -1,10 +1,12 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"github.com/Netflix/go-env"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 type Environment struct {
@@ -30,18 +32,47 @@ type Environment struct {
 		WebhookURL      string `env:"DISCORD_WEBHOOK_URL"`
 		MessageTemplate string `env:"DISCORD_MESSAGE_TEMPLATE"`
 	}
+
+	Logger *logrus.Logger
 }
 
-var Config Environment
+/*
+type Config struct {
+	*Environment
+	Logger *logrus.Logger
+}
+*/
+
+func InitLogger() *logrus.Logger {
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetLevel(logrus.Level(Cfg.Server.LogLevel))
+	logger.Debugf("log level: %d", logrus.GetLevel())
+	logger.Info("logger initialized")
+	//log.Println(logger)
+	return logger
+}
+
+var Cfg Environment = Environment{}
 
 func init() {
+	logger := logrus.New()
 	err := godotenv.Load()
 	if err == nil {
-		Logger.Printf("successfully loaded .env file: %v", err)
+		logger.Info("successfully loaded .env file")
 	}
-	if _, err := env.UnmarshalFromEnviron(&Config); err != nil {
-		Logger.Fatal(err)
+	if _, err := env.UnmarshalFromEnviron(&Cfg); err != nil {
+		logger.Fatal(err)
 	}
-	Logger.Printf("successfully initialized configuration")
+	log.Print(Cfg)
+	//Cfg.Logger.SetFormatter(&logrus.JSONFormatter{})
+	Cfg.Logger = logger
+	Cfg.Logger.SetLevel(logrus.Level(Cfg.Server.LogLevel))
+	log.Println(Cfg.Logger.Level)
+	log.Println(Cfg.Server.LogLevel)
+	Cfg.Logger.Debugf("log level: %d", Cfg.Logger.GetLevel())
+	Cfg.Logger.Info("logger initialized")
+	Cfg.Logger.Info("successfully initialized configuration")
+	Cfg.Logger.Debugf("config: %v", Cfg)
 	//Logger.Printf("successfully initialized configuration: %+v", Config)
 }
