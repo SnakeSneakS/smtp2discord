@@ -20,6 +20,10 @@ func main() {
 
 func NewSmtp2DiscordServer() *smtp.Server {
 	backend := NewBackend()
+	backend.SendEmailFuncs = append(backend.SendEmailFuncs, func(e EmailData) error {
+		Logger.Debugf("will send email data from(%s) to(%v)", e.From, e.To)
+		return nil
+	})
 	backend.SendEmailFuncs = append(backend.SendEmailFuncs, sendEmailDataToDiscord)
 	server := NewServer(backend)
 	return server
