@@ -80,7 +80,7 @@ func (s *Session) Data(r io.Reader) error {
 		s.Email.Text = string(b)
 		for _, sendEmailFunc := range s.SendEmailFuncs {
 			if err := sendEmailFunc(*s.Email); err != nil {
-
+				Logger.Errorf("failed to send email: %v", err)
 			}
 		}
 	}

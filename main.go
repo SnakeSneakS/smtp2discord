@@ -13,6 +13,7 @@ import (
 func main() {
 	// サーバーの起動
 	server := NewSmtp2DiscordServer()
+	Logger.Debugf("listen and serve on %s", Config.Server.Addr)
 	if err := server.ListenAndServe(); err != nil {
 		Logger.Errorf("Failed to start server: %v", err)
 	}
