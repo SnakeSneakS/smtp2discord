@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/emersion/go-sasl"
@@ -77,11 +78,16 @@ func (s *Session) Data(r io.Reader) error {
 	} else {
 		//Logger.Println("Data:", string(b))
 		//s.Email.Text = append(s.Email.Text, []byte(b)...)
+		var err error
 		s.Email.Text = string(b)
 		for _, sendEmailFunc := range s.SendEmailFuncs {
-			if err := sendEmailFunc(*s.Email); err != nil {
+			if _err := sendEmailFunc(*s.Email); _err != nil {
 				Logger.Errorf("failed to send email: %v", err)
+				err = fmt.Errorf("%w, %w", err, _err)
 			}
+		}
+		if err != nil {
+			return err
 		}
 	}
 	return nil
