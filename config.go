@@ -24,7 +24,7 @@ type Environment struct {
 		MaxRecipients     int           `env:"MAX_RECIPIENTS,default=1"`
 		AllowInsecureAuth bool          `env:"ALLOW_INSECURE_AUTH,default=true"`
 
-		LogLevel int `env:"LOG_LEVEL,default=5"` //logrus log level
+		LogLevel int `env:"LOG_LEVEL,default=4"` //logrus log level
 	}
 
 	Discord struct {
