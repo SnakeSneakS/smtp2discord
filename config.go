@@ -24,12 +24,15 @@ type Environment struct {
 		MaxRecipients     int           `env:"MAX_RECIPIENTS,default=1"`
 		AllowInsecureAuth bool          `env:"ALLOW_INSECURE_AUTH,default=true"`
 
+		EmailMsgSizeMax int `env:"EMAIL_MSG_SIZE_MAX,default=6000"`
+
 		LogLevel int `env:"LOG_LEVEL,default=4"` //logrus log level
 	}
 
 	Discord struct {
-		WebhookURL      string `env:"DISCORD_WEBHOOK_URL"`
-		MessageTemplate string `env:"DISCORD_MESSAGE_TEMPLATE"`
+		WebhookURL        string `env:"DISCORD_WEBHOOK_URL"`
+		MessageTemplate   string `env:"DISCORD_MESSAGE_TEMPLATE"`
+		DiscordMsgSizeMax int    `env:"DISCORD_MSG_SIZE_MAX,default=2000"`
 	}
 }
 

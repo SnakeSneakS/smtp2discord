@@ -80,6 +80,9 @@ func (s *Session) Data(r io.Reader) error {
 		//s.Email.Text = append(s.Email.Text, []byte(b)...)
 		var err error
 		s.Email.Text = string(b)
+		if len(s.Email.Text) > Cfg.Server.EmailMsgSizeMax {
+			return fmt.Errorf("email content must be less than %d", Cfg.Server.EmailMsgSizeMax)
+		}
 		for _, sendEmailFunc := range s.SendEmailFuncs {
 			if _err := sendEmailFunc(*s.Email); _err != nil {
 				Cfg.Logger.Errorf("failed to send email: %v", _err)

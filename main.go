@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"text/template"
 
 	"github.com/emersion/go-smtp"
+	"golang.org/x/net/html"
 )
 
 func main() {
@@ -31,19 +33,48 @@ func NewSmtp2DiscordServer() *smtp.Server {
 }
 
 func sendEmailDataToDiscord(e EmailData) error {
+	text, err := extractTextFromHTML(e.Text)
+	if err != nil {
+		Cfg.Logger.Debugf("failed to parse email text as html: %s", e.Text)
+		text = e.Text
+	}
 	templateData := map[string]interface{}{
 		"From": e.From,
 		"To":   e.To,
-		"Text": e.Text,
+		"Text": text,
 	}
 	message, err := RenderDiscordMessageTemplate(templateData)
 	if err != nil {
 		return err
 	}
-	if err := SendToDiscord(message); err != nil {
-		return err
+	messages := TruncateAndSplit(message, Cfg.Discord.DiscordMsgSizeMax)
+	for _, messageSplit := range messages {
+		if err := SendToDiscord(messageSplit); err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func extractTextFromHTML(htmlStr string) (string, error) {
+	doc, err := html.Parse(strings.NewReader(htmlStr))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse HTML: %w", err)
+	}
+	var result strings.Builder
+	var extractText func(*html.Node)
+	extractText = func(node *html.Node) {
+		if node.Type == html.TextNode {
+			result.WriteString(node.Data)
+			result.WriteString("\n")
+		} else if node.Type == html.ElementNode {
+			for child := node.FirstChild; child != nil; child = child.NextSibling {
+				extractText(child)
+			}
+		}
+	}
+	extractText(doc)
+	return strings.TrimSpace(result.String()), nil
 }
 
 func RenderDiscordMessageTemplate(data interface{}) (string, error) {
