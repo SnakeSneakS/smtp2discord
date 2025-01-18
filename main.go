@@ -9,7 +9,7 @@ import (
 	"text/template"
 
 	"github.com/emersion/go-smtp"
-	"golang.org/x/net/html"
+	"github.com/jordan-wright/email"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func NewSmtp2DiscordServer() *smtp.Server {
 
 func sendEmailDataToDiscord(e EmailData) error {
 	text := e.Text
-	//extractTextFromEmailText(e.Text)
+	text = ExtractTextFromEmailText(text)
 
 	templateData := map[string]interface{}{
 		"From": e.From,
@@ -59,28 +59,20 @@ func sendEmailDataToDiscord(e EmailData) error {
 // TODO: implement this well
 func ExtractTextFromEmailText(input string) string {
 	// Try parsing the input as HTML
-	doc, err := html.Parse(strings.NewReader(input))
+	email, err := email.NewEmailFromReader(strings.NewReader(input))
 	if err != nil {
-		// If parsing fails, assume it's plain text
+		Cfg.Logger.Warnf("failed to decode email data, so return plain text")
 		return input
 	}
-
-	// Extract text from the HTML
-	var buf bytes.Buffer
-	var extractText func(*html.Node)
-	extractText = func(n *html.Node) {
-		if n.Type == html.TextNode {
-			buf.WriteString(n.Data)
-		}
-		if n.FirstChild != nil {
-			extractText(n.FirstChild)
-		}
-		if n.NextSibling != nil {
-			extractText(n.NextSibling)
-		}
-	}
-	extractText(doc)
-	return strings.TrimSpace(buf.String())
+	return fmt.Sprintf(`**Subject**: %s
+**From**: %s
+**To**: %s
+**Cc**: %s
+**Text**: 
+%s
+**HTML**:
+%s
+`, email.Subject, email.From, email.To, email.Cc, email.Text, email.HTML)
 }
 
 func RenderDiscordMessageTemplate(data interface{}) (string, error) {
