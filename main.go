@@ -56,7 +56,6 @@ func sendEmailDataToDiscord(e EmailData) error {
 }
 
 // ExtractTextFromEmailText extracts text from an HTML input or returns the raw text if the input is not valid HTML.
-// TODO: implement this well
 func ExtractTextFromEmailText(input string) string {
 	// Try parsing the input as HTML
 	email, err := email.NewEmailFromReader(strings.NewReader(input))
@@ -70,9 +69,14 @@ func ExtractTextFromEmailText(input string) string {
 **Cc**: %s
 **Text**: 
 %s
-**HTML**:
-%s
-`, email.Subject, email.From, email.To, email.Cc, email.Text, email.HTML)
+`,
+		email.Subject,
+		email.From,
+		email.To,
+		email.Cc,
+		email.Text,
+		//email.HTML
+	)
 }
 
 func RenderDiscordMessageTemplate(data interface{}) (string, error) {
