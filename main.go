@@ -34,12 +34,13 @@ func NewSmtp2DiscordServer() *smtp.Server {
 
 func sendEmailDataToDiscord(e EmailData) error {
 	templateData := map[string]interface{}{
-		"From": e.From,
-		"To":   e.To,
-		"Cc":   []string{},
-		"Bcc":  []string{},
-		"Text": e.Text,
-		"HTML": "",
+		"From":    e.From,
+		"To":      e.To,
+		"Cc":      []string{},
+		"Bcc":     []string{},
+		"Subject": "",
+		"Text":    e.Text,
+		"HTML":    "",
 	}
 	emailExtracted, err := ExtractTextFromEmailText(e.Text)
 	if err == nil {
@@ -47,6 +48,7 @@ func sendEmailDataToDiscord(e EmailData) error {
 		templateData["To"] = emailExtracted.ReplyTo
 		templateData["Cc"] = emailExtracted.Cc
 		templateData["Bcc"] = emailExtracted.Bcc
+		templateData["Subject"] = emailExtracted.Subject
 		templateData["Text"] = string(emailExtracted.Text)
 		templateData["HTML"] = string(emailExtracted.HTML)
 	} else {
