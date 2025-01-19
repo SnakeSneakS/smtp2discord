@@ -45,7 +45,7 @@ func sendEmailDataToDiscord(e EmailData) error {
 	emailExtracted, err := ExtractTextFromEmailText(e.Text)
 	if err == nil {
 		templateData["From"] = emailExtracted.From
-		templateData["To"] = emailExtracted.ReplyTo
+		templateData["To"] = emailExtracted.To
 		templateData["Cc"] = emailExtracted.Cc
 		templateData["Bcc"] = emailExtracted.Bcc
 		templateData["Subject"] = emailExtracted.Subject
