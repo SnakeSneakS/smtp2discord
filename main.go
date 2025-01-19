@@ -42,13 +42,15 @@ func sendEmailDataToDiscord(e EmailData) error {
 		"HTML": "",
 	}
 	emailExtracted, err := ExtractTextFromEmailText(e.Text)
-	if err != nil {
+	if err == nil {
 		templateData["From"] = emailExtracted.From
 		templateData["To"] = emailExtracted.ReplyTo
 		templateData["Cc"] = emailExtracted.Cc
 		templateData["Bcc"] = emailExtracted.Bcc
 		templateData["Text"] = string(emailExtracted.Text)
 		templateData["HTML"] = string(emailExtracted.HTML)
+	} else {
+		Cfg.Logger.Errorf("failed to parse email content: %v", err)
 	}
 
 	message, err := RenderDiscordMessageTemplate(templateData)
