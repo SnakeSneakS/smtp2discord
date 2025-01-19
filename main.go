@@ -15,7 +15,7 @@ import (
 func main() {
 	// サーバーの起動
 	server := NewSmtp2DiscordServer()
-	Cfg.Logger.Debugf("listen and serve on %s", Cfg.Server.Addr)
+	Cfg.Logger.Infof("listen and serve on %s", Cfg.Server.Addr)
 	if err := server.ListenAndServe(); err != nil {
 		Cfg.Logger.Errorf("Failed to start server: %v", err)
 	}
@@ -33,14 +33,24 @@ func NewSmtp2DiscordServer() *smtp.Server {
 }
 
 func sendEmailDataToDiscord(e EmailData) error {
-	text := e.Text
-	text = ExtractTextFromEmailText(text)
-
 	templateData := map[string]interface{}{
 		"From": e.From,
 		"To":   e.To,
-		"Text": text,
+		"Cc":   []string{},
+		"Bcc":  []string{},
+		"Text": e.Text,
+		"HTML": "",
 	}
+	emailExtracted, err := ExtractTextFromEmailText(e.Text)
+	if err != nil {
+		templateData["From"] = emailExtracted.From
+		templateData["To"] = emailExtracted.ReplyTo
+		templateData["Cc"] = emailExtracted.Cc
+		templateData["Bcc"] = emailExtracted.Bcc
+		templateData["Text"] = string(emailExtracted.Text)
+		templateData["HTML"] = string(emailExtracted.HTML)
+	}
+
 	message, err := RenderDiscordMessageTemplate(templateData)
 	if err != nil {
 		return err
@@ -56,27 +66,14 @@ func sendEmailDataToDiscord(e EmailData) error {
 }
 
 // ExtractTextFromEmailText extracts text from an HTML input or returns the raw text if the input is not valid HTML.
-func ExtractTextFromEmailText(input string) string {
+func ExtractTextFromEmailText(input string) (*email.Email, error) {
 	// Try parsing the input as HTML
 	email, err := email.NewEmailFromReader(strings.NewReader(input))
 	if err != nil {
 		Cfg.Logger.Warnf("failed to decode email data, so return plain text")
-		return input
+		return nil, err
 	}
-	return fmt.Sprintf(`**Subject**: %s
-**From**: %s
-**To**: %s
-**Cc**: %s
-**Text**: 
-%s
-`,
-		email.Subject,
-		email.From,
-		email.To,
-		email.Cc,
-		email.Text,
-		//email.HTML
-	)
+	return email, nil
 }
 
 func RenderDiscordMessageTemplate(data interface{}) (string, error) {
