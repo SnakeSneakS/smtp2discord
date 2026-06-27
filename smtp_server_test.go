@@ -17,6 +17,7 @@ func TestSMTPServer(t *testing.T) {
 		return nil
 	})
 	server := NewServer(backend)
+	defer server.Close()
 	// サーバーの起動
 	go func() {
 		if err := server.ListenAndServe(); err != nil {

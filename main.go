@@ -8,28 +8,30 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/emersion/go-smtp"
 	"github.com/jordan-wright/email"
 )
 
 func main() {
-	// サーバーの起動
-	server := NewSmtp2DiscordServer()
-	Cfg.Logger.Infof("listen and serve on %s", Cfg.Server.Addr)
-	if err := server.ListenAndServe(); err != nil {
-		Cfg.Logger.Errorf("Failed to start server: %v", err)
-	}
-}
-
-func NewSmtp2DiscordServer() *smtp.Server {
 	backend := NewBackend()
-	backend.SendEmailFuncs = append(backend.SendEmailFuncs, func(e EmailData) error {
-		Cfg.Logger.Debugf("will send email data from(%s) to(%v). %s", e.From, e.To, e.Text)
-		return nil
-	})
-	backend.SendEmailFuncs = append(backend.SendEmailFuncs, sendEmailDataToDiscord)
-	server := NewServer(backend)
-	return server
+	backend.SendEmailFuncs = append(
+		backend.SendEmailFuncs,
+		sendEmailDataToDiscord,
+	)
+
+	smtpServer := NewServer(backend)
+	httpServer := NewHTTPServer(backend)
+
+	go func() {
+		Cfg.Logger.Infof("SMTP listen on %s", Cfg.Server.Addr)
+		if err := smtpServer.ListenAndServe(); err != nil {
+			Cfg.Logger.Errorf("SMTP error: %v", err)
+		}
+	}()
+
+	Cfg.Logger.Infof("HTTP listen on %s", httpServer.Addr)
+	if err := httpServer.ListenAndServe(); err != nil {
+		Cfg.Logger.Errorf("HTTP error: %v", err)
+	}
 }
 
 func sendEmailDataToDiscord(e EmailData) error {
@@ -42,6 +44,7 @@ func sendEmailDataToDiscord(e EmailData) error {
 		"Text":    e.Text,
 		"HTML":    "",
 	}
+
 	emailExtracted, err := ExtractTextFromEmailText(e.Text)
 	if err == nil {
 		templateData["From"] = emailExtracted.From
@@ -66,18 +69,17 @@ func sendEmailDataToDiscord(e EmailData) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
-// ExtractTextFromEmailText extracts text from an HTML input or returns the raw text if the input is not valid HTML.
 func ExtractTextFromEmailText(input string) (*email.Email, error) {
-	// Try parsing the input as HTML
-	email, err := email.NewEmailFromReader(strings.NewReader(input))
+	emailParsed, err := email.NewEmailFromReader(strings.NewReader(input))
 	if err != nil {
 		Cfg.Logger.Warnf("failed to decode email data, so return plain text")
 		return nil, err
 	}
-	return email, nil
+	return emailParsed, nil
 }
 
 func RenderDiscordMessageTemplate(data interface{}) (string, error) {
@@ -86,10 +88,12 @@ func RenderDiscordMessageTemplate(data interface{}) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error creating template: %v", err)
 	}
+
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("error executing template: %v", err)
 	}
+
 	return buf.String(), nil
 }
 
@@ -97,11 +101,17 @@ func SendToDiscord(message string) error {
 	payload := map[string]string{
 		"content": message,
 	}
+
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("error marshalling payload: %v", err)
 	}
-	resp, err := http.Post(Cfg.Discord.WebhookURL, "application/json", bytes.NewBuffer(payloadBytes))
+
+	resp, err := http.Post(
+		Cfg.Discord.WebhookURL,
+		"application/json",
+		bytes.NewBuffer(payloadBytes),
+	)
 	if err != nil {
 		return fmt.Errorf("error sending request to Discord: %v", err)
 	}
@@ -110,5 +120,6 @@ func SendToDiscord(message string) error {
 	if resp.StatusCode >= 300 {
 		return fmt.Errorf("unexpected status code from Discord: %d", resp.StatusCode)
 	}
+
 	return nil
 }
